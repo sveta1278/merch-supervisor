@@ -1,0 +1,195 @@
+/* ====== Layout ====== */
+body {
+  min-height: 100vh;
+}
+
+.main-content {
+  min-height: calc(100vh - 56px);
+}
+
+/* ====== Bottom navigation ====== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #fff;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  align-items: stretch;
+  z-index: 1030;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #6c757d;
+  font-size: 11px;
+  gap: 2px;
+  transition: color 0.15s;
+  min-height: 44px;
+}
+
+.bottom-nav-item i {
+  font-size: 22px;
+}
+
+.bottom-nav-item.active,
+.bottom-nav-item:hover {
+  color: #0d6efd;
+}
+
+.bottom-nav-primary {
+  color: #0d6efd;
+}
+
+/* ====== Visit tabs ====== */
+.nav-tabs .nav-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  padding: 8px 12px;
+}
+
+/* ====== Photo upload zone ====== */
+.photo-upload-zone {
+  border: 2px dashed #0d6efd;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  background: #f8f9ff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.photo-upload-zone:hover {
+  background: #e8eeff;
+}
+
+.photo-upload-zone input[type="file"] {
+  display: none;
+}
+
+/* ====== Photo gallery ====== */
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .photo-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.photo-grid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* ====== Check items ====== */
+.check-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 0;
+}
+
+.check-item:last-child {
+  border-bottom: none;
+}
+
+.check-btn {
+  min-height: 36px;
+  min-width: 70px;
+  font-size: 13px;
+}
+
+/* ====== Status badges ====== */
+.status-present { color: #198754; }
+.status-absent { color: #dc3545; }
+.status-not_checked { color: #6c757d; }
+
+/* ====== Completion percentage ====== */
+.completion-number {
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ====== Cards on dashboard ====== */
+.visit-card {
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* ====== KPI Cards ====== */
+.card {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+/* ====== Custom filters ====== */
+.form-control-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.875rem;
+}
+
+/* ====== Table responsive ====== */
+.table-responsive {
+  border-radius: 8px 8px 0 0;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* ====== Mobile paddings ====== */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .main-content {
+    padding-bottom: 80px !important;
+  }
+
+  .card-body {
+    padding: 12px;
+  }
+
+  canvas {
+    max-height: 250px !important;
+  }
+}

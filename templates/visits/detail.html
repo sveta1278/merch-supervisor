@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Визит — {{ visit.store.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-2 d-flex align-items-center justify-content-between">
+  <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i>Главная
+  </a>
+  <span class="badge {% if visit.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+    {% if visit.status == 'completed' %}Завершён{% else %}В процессе{% endif %}
+  </span>
+</div>
+
+<h6 class="fw-bold mb-1">{{ visit.store.name }}</h6>
+<div class="text-muted small mb-3">{{ visit.store.network }} · {{ visit.date|date:"d.m.Y" }}</div>
+
+<ul class="nav nav-tabs mb-3" id="visitTabs" role="tablist">
+  <li class="nav-item flex-fill" role="presentation">
+    <button class="nav-link w-100 {% if active_tab == 'photos' %}active{% endif %}"
+            id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos"
+            type="button" role="tab">
+      <i class="bi bi-camera me-1"></i>Фото
+    </button>
+  </li>
+  <li class="nav-item flex-fill" role="presentation">
+    <button class="nav-link w-100 {% if active_tab == 'checklist' %}active{% endif %}"
+            id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist"
+            type="button" role="tab">
+      <i class="bi bi-check2-square me-1"></i>Чек-лист
+    </button>
+  </li>
+  <li class="nav-item flex-fill" role="presentation">
+    <button class="nav-link w-100 {% if active_tab == 'details' %}active{% endif %}"
+            id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
+            type="button" role="tab">
+      <i class="bi bi-info-circle me-1"></i>Детали
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- ===== TAB 1: ФОТО ===== -->
+  <div class="tab-pane fade {% if active_tab == 'photos' %}show active{% endif %}" id="photos" role="tabpanel">
+
+    {% if visit.status != 'completed' %}
+    <form method="post" enctype="multipart/form-data" id="photo-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="upload_photo">
+      <label class="photo-upload-zone d-block mb-3" for="id_image">
+        <i class="bi bi-camera-fill text-primary" style="font-size:36px"></i>
+        <p class="mt-2 mb-1 fw-medium">Добавить фото</p>
+        <p class="text-muted small mb-0">Нажмите, чтобы выбрать или сфотографировать</p>
+        <input type="file" name="image" id="id_image" accept="image/*" onchange="this.form.submit()">
+      </label>
+      {% if photo_form.image.errors %}
+        <div class="text-danger small">{{ photo_form.image.errors }}</div>
+      {% endif %}
+    </form>
+    {% endif %}
+
+    {% if photos %}
+    <div class="photo-grid">
+      {% for photo in photos %}
+      <div>
+        <a href="{{ photo.image.url }}" target="_blank">
+          <img src="{{ photo.image.url }}" alt="Фото" loading="lazy">
+        </a>
+        {% if photo.comment %}
+        <div class="text-muted small mt-1 px-1">{{ photo.comment }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted py-4">Фото ещё не загружены</p>
+    {% endif %}
+  </div>
+
+  <!-- ===== TAB 2: ЧЕК-ЛИСТ ===== -->
+  <div class="tab-pane fade {% if active_tab == 'checklist' %}show active{% endif %}" id="checklist" role="tabpanel">
+
+    <div class="alert alert-light border mb-3 d-flex align-items-center gap-3">
+      <i class="bi bi-check2-circle text-primary fs-4"></i>
+      <div>
+        <span class="fw-semibold">Проверено {{ checked }} из {{ total }}</span>
+        <div class="progress mt-1" style="height:4px;width:120px">
+          <div class="progress-bar" style="width:{% if total %}{{ checked|floatformat:0 }}{% else %}0{% endif %}%"
+               data-checked="{{ checked }}" data-total="{{ total }}"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if check_items %}
+    <div id="checklist-items">
+      {% for item in check_items %}
+      <div class="check-item d-flex align-items-center gap-2" id="item-row-{{ item.pk }}">
+        <div class="flex-grow-1">
+          <div class="fw-medium" style="font-size:14px">{{ item.sku.name }}</div>
+          <div class="text-muted" style="font-size:12px">{{ item.sku.barcode }} · {{ item.sku.category }}</div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          {% if visit.status != 'completed' %}
+          <form method="post" class="check-form d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_check">
+            <input type="hidden" name="item_id" value="{{ item.pk }}">
+            <input type="hidden" name="status" value="present">
+            <button type="submit"
+                    class="check-btn btn btn-sm {% if item.status == 'present' %}btn-success{% else %}btn-outline-success{% endif %}">
+              ✓
+            </button>
+          </form>
+          <form method="post" class="check-form d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_check">
+            <input type="hidden" name="item_id" value="{{ item.pk }}">
+            <input type="hidden" name="status" value="absent">
+            <button type="submit"
+                    class="check-btn btn btn-sm {% if item.status == 'absent' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+              ✗
+            </button>
+          </form>
+          <form method="post" class="check-form d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_check">
+            <input type="hidden" name="item_id" value="{{ item.pk }}">
+            <input type="hidden" name="status" value="not_checked">
+            <button type="submit"
+                    class="check-btn btn btn-sm {% if item.status == 'not_checked' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+              ?
+            </button>
+          </form>
+          {% else %}
+          <span class="badge {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% else %}bg-secondary{% endif %}">
+            {{ item.get_status_display }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted py-4">SKU в плане не найдены</p>
+    {% endif %}
+  </div>
+
+  <!-- ===== TAB 3: ДЕТАЛИ ===== -->
+  <div class="tab-pane fade {% if active_tab == 'details' %}show active{% endif %}" id="details" role="tabpanel">
+
+    <div class="mb-3">
+      <div class="text-muted small">Супервайзер</div>
+      <div>{{ visit.supervisor.get_full_name|default:visit.supervisor.username }}</div>
+    </div>
+    <div class="mb-3">
+      <div class="text-muted small">Магазин</div>
+      <div>{{ visit.store.name }}, {{ visit.store.address }}</div>
+    </div>
+    <div class="mb-4">
+      <div class="text-muted small">Дата</div>
+      <div>{{ visit.date|date:"d.m.Y" }}</div>
+    </div>
+
+    {% if visit.status != 'completed' %}
+    <form method="post" class="mb-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_notes">
+      <label class="form-label fw-medium">Заметки</label>
+      {{ notes_form.notes }}
+      <button type="submit" class="btn btn-outline-primary mt-2 w-100">
+        Сохранить заметки
+      </button>
+    </form>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="complete_visit">
+      <button type="submit" class="btn btn-success w-100 py-3"
+              onclick="return confirm('Завершить визит? Это действие нельзя отменить.')">
+        <i class="bi bi-check-circle me-2"></i>Завершить визит
+      </button>
+    </form>
+    {% else %}
+    {% if visit.notes %}
+    <div class="mb-3">
+      <div class="text-muted small">Заметки</div>
+      <div class="bg-white border rounded p-3 mt-1">{{ visit.notes }}</div>
+    </div>
+    {% endif %}
+    <a href="{% url 'visit_report' visit.pk %}" class="btn btn-outline-primary w-100">
+      <i class="bi bi-file-earmark-bar-graph me-2"></i>Открыть отчёт
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Async check item update via fetch
+document.querySelectorAll('.check-form').forEach(function(form) {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = new FormData(form);
+    fetch('', {
+      method: 'POST',
+      body: data,
+      headers: {'X-CSRFToken': data.get('csrfmiddlewaretoken')},
+    }).then(function(resp) {
+      if (resp.ok) {
+        var itemId = data.get('item_id');
+        var status = data.get('status');
+        var row = document.getElementById('item-row-' + itemId);
+        if (!row) return;
+        // Update button states
+        var buttons = row.querySelectorAll('button[type=submit]');
+        var statusMap = {'present': 0, 'absent': 1, 'not_checked': 2};
+        var classMap = {
+          0: ['btn-success', 'btn-outline-success'],
+          1: ['btn-danger', 'btn-outline-danger'],
+          2: ['btn-secondary', 'btn-outline-secondary'],
+        };
+        var idx = statusMap[status];
+        buttons.forEach(function(btn, i) {
+          var pair = classMap[i];
+          btn.classList.remove(pair[0], pair[1]);
+          btn.classList.add(i === idx ? pair[0] : pair[1]);
+        });
+        updateCounter(status, itemId);
+      }
+    });
+  });
+});
+
+var prevStatuses = {};
+{% for item in check_items %}
+prevStatuses[{{ item.pk }}] = '{{ item.status }}';
+{% endfor %}
+
+function updateCounter(newStatus, itemId) {
+  var prev = prevStatuses[itemId];
+  var bar = document.querySelector('.progress-bar');
+  if (!bar) return;
+  var checked = parseInt(bar.dataset.checked);
+  var total = parseInt(bar.dataset.total);
+  var wasChecked = prev !== 'not_checked';
+  var isChecked = newStatus !== 'not_checked';
+  if (!wasChecked && isChecked) checked++;
+  if (wasChecked && !isChecked) checked--;
+  bar.dataset.checked = checked;
+  bar.style.width = (total ? Math.round(checked / total * 100) : 0) + '%';
+  prevStatuses[itemId] = newStatus;
+  var label = bar.closest('.alert').querySelector('.fw-semibold');
+  if (label) label.textContent = 'Проверено ' + checked + ' из ' + total;
+}
+</script>
+{% endblock %}
